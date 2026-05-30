@@ -24,23 +24,20 @@ def init_db():
         )
     """)
 
-    # Kurs haqida ma'lumot (rasm/video/pdf/matn)
+    # chat_id + message_id saqlash — copy_message uchun (premium emoji, blockquote saqlanadi)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS course_info (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            content_type TEXT,
-            file_id      TEXT,
-            caption      TEXT DEFAULT ''
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id    INTEGER,
+            message_id INTEGER
         )
     """)
 
-    # Kurs narxi
     cur.execute("""
         CREATE TABLE IF NOT EXISTS course_price (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            content_type TEXT,
-            file_id      TEXT,
-            caption      TEXT DEFAULT ''
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id    INTEGER,
+            message_id INTEGER
         )
     """)
 
@@ -67,7 +64,6 @@ def add_user(telegram_id: int, full_name: str, phone: str, username: str):
 
 
 def get_user(telegram_id: int):
-    """Qaytaradi: (id, telegram_id, full_name, phone, username, joined_at, is_active)"""
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE telegram_id = ?", (telegram_id,))
@@ -86,7 +82,6 @@ def get_all_active_users():
 
 
 def deactivate_user(telegram_id: int):
-    """O'quvchini ro'yxatdan o'chiradi (admin 'Bog'lanib bo'ldim' bosganida)."""
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("UPDATE users SET is_active = 0 WHERE telegram_id = ?", (telegram_id,))
@@ -96,22 +91,20 @@ def deactivate_user(telegram_id: int):
 
 # ─── Kurs ma'lumoti ──────────────────────────────────────────────────────────
 
-def save_course_info(content_type: str, file_id: str, caption: str):
+def save_course_info(chat_id: int, message_id: int):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("DELETE FROM course_info")
-    cur.execute(
-        "INSERT INTO course_info (content_type, file_id, caption) VALUES (?, ?, ?)",
-        (content_type, file_id, caption),
-    )
+    cur.execute("INSERT INTO course_info (chat_id, message_id) VALUES (?, ?)", (chat_id, message_id))
     conn.commit()
     conn.close()
 
 
 def get_course_info():
+    """Qaytaradi: [(id, chat_id, message_id), ...]"""
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT id, content_type, file_id, caption FROM course_info")
+    cur.execute("SELECT id, chat_id, message_id FROM course_info")
     rows = cur.fetchall()
     conn.close()
     return rows
@@ -119,14 +112,11 @@ def get_course_info():
 
 # ─── Kurs narxi ─────────────────────────────────────────────────────────────
 
-def save_course_price(content_type: str, file_id: str, caption: str):
+def save_course_price(chat_id: int, message_id: int):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("DELETE FROM course_price")
-    cur.execute(
-        "INSERT INTO course_price (content_type, file_id, caption) VALUES (?, ?, ?)",
-        (content_type, file_id, caption),
-    )
+    cur.execute("INSERT INTO course_price (chat_id, message_id) VALUES (?, ?)", (chat_id, message_id))
     conn.commit()
     conn.close()
 
@@ -134,7 +124,7 @@ def save_course_price(content_type: str, file_id: str, caption: str):
 def get_course_price():
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT id, content_type, file_id, caption FROM course_price")
+    cur.execute("SELECT id, chat_id, message_id FROM course_price")
     rows = cur.fetchall()
     conn.close()
     return rows

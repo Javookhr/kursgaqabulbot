@@ -35,42 +35,18 @@ logging.basicConfig(
 
 # ─── Yordamchi funksiyalar ───────────────────────────────────────────────────
 
-def extract_content(message):
-    """Xabardan (content_type, file_id, caption) qaytaradi."""
-    if message.photo:
-        return "photo", message.photo[-1].file_id, message.caption or ""
-    if message.video:
-        return "video", message.video.file_id, message.caption or ""
-    if message.document:
-        return "document", message.document.file_id, message.caption or ""
-    if message.audio:
-        return "audio", message.audio.file_id, message.caption or ""
-    if message.voice:
-        return "voice", message.voice.file_id, message.caption or ""
-    return "text", message.text or "", ""
-
-
-async def send_stored(bot, chat_id: int, row: tuple):
-    """Ma'lumotlar bazasidan olingan qatorni yuboradi."""
-    _, content_type, file_id, caption = row
-    if content_type == "text":
-        await bot.send_message(chat_id, file_id)
-    elif content_type == "photo":
-        await bot.send_photo(chat_id, file_id, caption=caption or None)
-    elif content_type == "video":
-        await bot.send_video(chat_id, file_id, caption=caption or None)
-    elif content_type == "document":
-        await bot.send_document(chat_id, file_id, caption=caption or None)
-    elif content_type == "audio":
-        await bot.send_audio(chat_id, file_id, caption=caption or None)
-    elif content_type == "voice":
-        await bot.send_voice(chat_id, file_id, caption=caption or None)
+async def copy_stored(bot, to_chat_id: int, row: tuple):
+    """
+    copy_message ishlatadi — premium emoji, blockquote, barcha formatlash saqlanadi.
+    row: (id, from_chat_id, message_id)
+    """
+    _, from_chat_id, message_id = row
+    await bot.copy_message(chat_id=to_chat_id, from_chat_id=from_chat_id, message_id=message_id)
 
 
 async def forward_to(bot, msg, chat_id: int):
-    """Saqlangan broadcast xabarini boshqa foydalanuvchiga yuboradi."""
-    content_type, file_id, caption = extract_content(msg)
-    await send_stored(bot, chat_id, (None, content_type, file_id, caption))
+    """Broadcast xabarini copy_message orqali yuboradi."""
+    await bot.copy_message(chat_id=chat_id, from_chat_id=msg.chat_id, message_id=msg.message_id)
 
 
 def is_admin(user_id: int) -> bool:
@@ -152,7 +128,7 @@ async def user_course_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Hozircha kurs haqida ma'lumot yo'q.")
         return MAIN_MENU
     for row in rows:
-        await send_stored(context.bot, update.effective_chat.id, row)
+        await copy_stored(context.bot, update.effective_chat.id, row)
     return MAIN_MENU
 
 
@@ -164,7 +140,7 @@ async def user_course_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Hozircha kurs narxi kiritilmagan.")
         return MAIN_MENU
     for row in rows:
-        await send_stored(context.bot, update.effective_chat.id, row)
+        await copy_stored(context.bot, update.effective_chat.id, row)
     return MAIN_MENU
 
 
@@ -214,8 +190,7 @@ async def admin_enter_course_info(update: Update, context: ContextTypes.DEFAULT_
 
 
 async def admin_save_course_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    ctype, fid, cap = extract_content(update.message)
-    db.save_course_info(ctype, fid, cap)
+    db.save_course_info(update.message.chat_id, update.message.message_id)
     await update.message.reply_text("✅ Kurs ma'lumoti saqlandi!", reply_markup=buttons.admin_keyboard())
     return MAIN_MENU
 
@@ -234,8 +209,7 @@ async def admin_enter_course_price(update: Update, context: ContextTypes.DEFAULT
 
 
 async def admin_save_course_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    ctype, fid, cap = extract_content(update.message)
-    db.save_course_price(ctype, fid, cap)
+    db.save_course_price(update.message.chat_id, update.message.message_id)
     await update.message.reply_text("✅ Kurs narxi saqlandi!", reply_markup=buttons.admin_keyboard())
     return MAIN_MENU
 
