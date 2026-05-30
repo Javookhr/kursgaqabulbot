@@ -1,6 +1,6 @@
 import logging
 
-from telegram import Update
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -86,6 +86,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Assalomu alaykum! Botga xush kelibsiz. 👋\n\n"
         "Ro'yxatdan o'tish uchun <b>Ism va Familiyangizni</b> kiriting:",
         parse_mode="HTML",
+        reply_markup=ReplyKeyboardRemove(),
     )
     return REGISTER_NAME
 
