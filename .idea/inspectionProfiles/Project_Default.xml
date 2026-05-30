@@ -1,0 +1,24 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="aiogram" />
+          <option value="aiosqlite" />
+          <option value="python-dotenv" />
+          <option value="python-docx" />
+          <option value="python-pptx" />
+          <option value="openpyxl" />
+          <option value="pytesseract" />
+          <option value="PyMuPDF" />
+          <option value="Pillow" />
+          <option value="Django" />
+          <option value="whitenoise" />
+          <option value="django-widget-tweaks" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnnecessaryCastInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+  </profile>
+</component>
